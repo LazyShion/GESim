@@ -110,7 +110,6 @@ main(int argc, char **argv){
 
   for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
     double sim = g_entropy.comp_QJS(gid, gid1);
-    //double sim = g_entropy.comp_Tanimoto(gid, gid1);
     cout << gid1 << "\t" << sim << endl;
   }
 
