@@ -31,7 +31,7 @@ private:
   vector<unsigned int> *q_weights; // query_weights
   const static unsigned int FP_LEN = 1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
-  unsigned int d; // max_dir
+  unsigned int r; // max_rad
   
 public:
   // ---------------------
@@ -44,7 +44,7 @@ public:
   // ---------------------
   
   GraphEntropy();
-  GraphEntropy(GraphDB *db, unsigned int max_dir);
+  GraphEntropy(GraphDB *db, unsigned int max_rad);
   
   
   // ---------------------
@@ -140,7 +140,7 @@ public:
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       unsigned int deg = degrees_g1[i];
       int pos = align_g1[i];
-      double cost = d;
+      double cost = r;
 
       if(pos != -1){
 	cost = cost - costs[num_nodes_g2*i+pos];
@@ -148,15 +148,15 @@ public:
       
       if(deg > 0){	
 	double x = (double)deg/total_deg;
-	gent += tanh(cost) * x * log(x);
-	//gent += 1/(1+exp(-cost)-0.5) * x * log(x); // sigmoid
+	//gent += tanh(cost) * x * log(x);
+	gent += x * log(x);
       }
     }
     
     for(unsigned int j=0; j<num_nodes_g2; ++j){
       unsigned int deg = degrees_g2[j];
       int pos = align_g2[j];
-      double cost = d;
+      double cost = r;
 
       if(pos != -1){
 	cost = cost - costs[num_nodes_g2*pos+j];
@@ -164,8 +164,8 @@ public:
       
       if(deg > 0){
 	double x = (double)deg/total_deg;
-	gent += tanh(cost) * x * log(x);
-	//gent += 1/(1+exp(-cost)-0.5) * x * log(x); // sigmoid
+	//gent += tanh(cost) * x * log(x);
+	gent += x * log(x);
       }
     }
 
@@ -177,8 +177,8 @@ public:
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
     //double diff = comp_SI_union(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-    //double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-    double diff = align_graphs(g1, g2);
+    double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
+    //double diff = align_graphs(g1, g2);
 
     if(diff<=0){
       return 0;
@@ -189,10 +189,10 @@ public:
 
   // generate ecfp code for a node nid in a graph gid
   inline bitset<FP_LEN>
-  generate_ecfp_nid(GraphDB *gdb, unsigned int gid, unsigned int nid, unsigned int max_dir){
+  generate_ecfp_nid(GraphDB *gdb, unsigned int gid, unsigned int nid, unsigned int max_rad){
     bitset<FP_LEN> fp(0);
     
-    for(unsigned int dir=0; dir<max_dir; ++dir){
+    for(unsigned int dir=0; dir<=max_rad; ++dir){
       vector<unsigned int> visited(gdb->num_nodes_gid(gid), 0);
       unsigned int pos = hash<std::string>()(generate_ECFP(gdb, gid, nid, dir, &visited))%FP_LEN;
 
@@ -206,40 +206,40 @@ public:
 
   // generate ecfp code for a graph gid
   inline bitset<FP_LEN>
-  generate_ecfp_gid(GraphDB *gdb, unsigned int gid, unsigned int max_dir){
+  generate_ecfp_gid(GraphDB *gdb, unsigned int gid, unsigned int max_rad){
     bitset<FP_LEN> fp(0);
     
     for(unsigned int nid=0, end_nid=gdb->num_nodes_gid(gid); nid<end_nid; ++nid){
-      fp |= generate_ecfp_nid(gdb, gid, nid, max_dir);
+      fp |= generate_ecfp_nid(gdb, gid, nid, max_rad);
     }
     
     return fp;
   }
   
-  // Generate ECFP code for node nid in graph gid with maximum diameter (max_dia)
+  // Generate ECFP code for node nid in graph gid with maximum radius (max_rad)
   inline string
   generate_ECFP(GraphDB *gdb,
 		unsigned int gid,
 		unsigned int nid,
-		unsigned int max_dia,
+		unsigned int max_rad,
 		vector<unsigned int> *visited
 		){
     
     (*visited)[nid] = 1;
     string code = to_string((*gdb).node_label(gid, nid));
     
-    if(max_dia > 0){
+    if(max_rad > 0){
       vector<unsigned int>::iterator it = (*gdb).neighbors(gid, nid);
       vector<double>::iterator it_w = (*gdb).neighbor_weights(gid, nid);
       unsigned int degree = (*gdb).degree_gid(gid, nid);
-      unsigned int dia = max_dia -1;
+      unsigned int rad = max_rad -1;
       
       //code += "(";
       for(unsigned int i=0; i<degree; ++i){
 	unsigned int node = *(it+i);
 	double weight = *(it_w+i);
 	if((*visited)[node] == 0){
-	  code += to_string(weight)+generate_ECFP(gdb, gid, node, dia, visited);
+	  code += to_string(weight)+generate_ECFP(gdb, gid, node, rad, visited);
 	}
       }
       //code += ")";
@@ -268,7 +268,7 @@ public:
     bitset<FP_LEN> bs2 = fp_gid1 | fp_gid2;
     double tanimoto_sim = (double)bs1.count()/(double)bs2.count();
     
-    return 1-tanimoto_sim;
+    return tanimoto_sim;
   }
 
   // Run GRAAL between g1 and g2
@@ -278,7 +278,7 @@ public:
 	vector<int>::iterator it_g2, unsigned int size_g2,
 	vector<double>::iterator it_costs){
 
-    for(unsigned int m=d; m>=2; m--){
+    for(unsigned int m=r; m>=2; m--){
       for(unsigned int i=0; i<size_g1; ++i){
 	if(*(it_g1 +i) != -1){
 	  continue;

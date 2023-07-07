@@ -5,15 +5,15 @@ using namespace std;
 GraphEntropy::GraphEntropy(){}
 
 
-GraphEntropy::GraphEntropy(GraphDB *db, unsigned int max_dir){
+GraphEntropy::GraphEntropy(GraphDB *db, unsigned int max_rad){
   gdb = db;
   ecfp.resize(gdb->V);
   unsigned int pos = 0;
-  d = max_dir;
+  r = max_rad;
 
   for(unsigned int gid=0; gid<gdb->N; ++gid){
     for(unsigned int nid=0, deg=gdb->num_nodes_gid(gid); nid<deg; ++nid){
-      ecfp[pos] = generate_ecfp_nid(gdb, gid, nid, max_dir);
+      ecfp[pos] = generate_ecfp_nid(gdb, gid, nid, max_rad);
       ++pos;
     }
   }

@@ -1,6 +1,6 @@
 /*
  * Similarity Search on a Graph Database
- * Last update: Dec. 9th, 2022
+ * Last update: July 16th, 2023
  * Author: Hiroaki Shiokawa
  */
 #include <stdlib.h>
@@ -26,7 +26,7 @@ using namespace std;
 char *bin_file = NULL;
 bool result = false;
 //char *logfile = NULL;
-unsigned int max_dir = 4;
+unsigned int max_rad = 4;
 unsigned int gid = 0;
 
 void
@@ -37,13 +37,13 @@ usage(char *prog_name, const string more, bool help){
     cerr << "[Info] " << more << endl;    
   }
 
-  cerr << "[Usage] " << prog_name << " -i <bin_file_name> -q <query_node_id> -d <max_diameter> [-R] [-H]" << endl;
+  cerr << "[Usage] " << prog_name << " -i <bin_file_name> -q <query_node_id> -r <max_radius> [-D] [-H]" << endl;
   // Display help
   if(help){
     cerr << "\t-i <sim_file_name>: Set the input file name." << endl;
     cerr << "\t-q <query_node_id>: Set a query node id." << endl;
-    cerr << "\t-d <max_diameter>: Set the maximum diameter." << endl;
-    cerr << "\t-R: Display clusteering results" << endl;
+    cerr << "\t-r <max_radius>: Set the maximum diameter." << endl;
+    cerr << "\t-D: Display clusteering results" << endl;
     cerr << "\t-H: Display help menu." << endl;
     cerr << "" << endl;
   }
@@ -78,12 +78,12 @@ parse_args(int argc, char **argv) {
 	gid = (unsigned int) atoi(argv[i+1]);
 	i+=1;
 	break;
-      case 'd':
+      case 'r':
 	check_args(i+1, argc, argv[0], "Invalid arguments at "+string(argv[i]));
-	max_dir = (unsigned int) atoi(argv[i+1]);
+	max_rad = (unsigned int) atoi(argv[i+1]);
 	i+=1;
 	break;
-      case 'R':
+      case 'D':
 	result = true;
 	break;
       case 'H':
@@ -106,11 +106,25 @@ int
 main(int argc, char **argv){
   parse_args(argc, argv);
   GraphDB gdb(bin_file);
-  GraphEntropy g_entropy(&gdb, max_dir);
+  GraphEntropy g_entropy(&gdb, max_rad);
 
-  for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
-    double sim = g_entropy.comp_QJS(gid, gid1);
-    cout << gid1 << "\t" << sim << endl;
+  if(result){
+    // For All pairs sim test on zinc1000
+    /*
+    for(unsigned int gid = 0, end=gdb.N; gid<end; ++gid){
+      for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
+	double sim = g_entropy.comp_QJS(gid, gid1);
+	cout << gid << "\t" <<gid1 << "\t" << fixed << setprecision(5) << sim << endl;
+      }
+    }
+    */
+
+    // For default query test 
+    for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
+      double sim = g_entropy.comp_QJS(gid, gid1);
+      cout << gid << "\t" <<gid1 << "\t" << fixed << setprecision(5) << sim << endl;
+    }
+
   }
 
 }
