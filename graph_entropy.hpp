@@ -276,14 +276,13 @@ public:
       unsigned int node = (elm.second).first;
       unsigned int label = (*gdb).node_label(gid, node);
       int parent = ((elm.second).second).first;
-      string path = ((elm.second).second).second+"["+to_string(label)+"]";
-      //string path = ((elm.second).second).second+"["+to_string(node)+"]"; // code for DEBUG
-      
       vector<unsigned int>::iterator it = (*gdb).neighbors(gid, node);
       vector<double>::iterator it_w = (*gdb).neighbor_weights(gid, node);
       unsigned int degree = (*gdb).degree_gid(gid, node);
+      string path = ((elm.second).second).second+"["+to_string(label)+":"+to_string(degree)+"]";
+      //string path = ((elm.second).second).second+"["+to_string(node)+"]"; // code for DEBUG
 
-      if(max_rad!= r && degree == 1){
+      if(max_rad != r && degree == 1){
 	PATHS.push_back(path);
       }else{
 	for(unsigned int i=0; i<degree; ++i){

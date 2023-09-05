@@ -111,7 +111,7 @@ main(int argc, char **argv){
   // TEST CODES
   //cout << "********************************************************************" << endl;
   /*
-  unsigned int src_id = 0, dst_id = 0;
+  unsigned int src_id = 0, dst_id = 11;
   cout << "NID: " << src_id << endl;
   string str1 = g_entropy.generate_PATH_FP(&gdb, 27, src_id, max_rad);
   cout << "---" << endl;
@@ -124,9 +124,30 @@ main(int argc, char **argv){
     cout << "NG" << endl;
   }
   */
+  /*
+  for(unsigned int i=0; i<36; ++i){
+  unsigned int src_id = i, dst_id = i;
+  cout << "NID: " << src_id << endl;
+  string str1 = g_entropy.generate_PATH_FP(&gdb, 4, src_id, max_rad);
+  cout << "---" << endl;
+  cout << "NID: " << dst_id << endl;
+  string str2 = g_entropy.generate_PATH_FP(&gdb, 4, dst_id, max_rad);
+  
+  if(str1 == str2){
+    cout << "MATCH" << endl;
+  }else{
+    cout << "NG" << endl;
+  }
+  cout << "------------" << endl;
+  }
+  */
+
+  
   //cout << "sim(27, 39) = " << 1 - g_entropy.comp_QJS(27, 39) << endl;
   //cout << "sim(73, 39) = " << 1 - g_entropy.comp_QJS(73, 39) << endl;
-
+  //cout << "sim(804, 804) = " << 1 - g_entropy.comp_QJS(165, 165) << endl;
+  //cout << "sim(804, 804) = " << 1 - g_entropy.comp_QJS(804, 804) << endl;
+  
   //cout << "********************************************************************" << endl;
   
   if(result){
