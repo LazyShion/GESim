@@ -29,7 +29,7 @@ private:
   vector<unsigned int> *q_labels;  // query_labels
   vector<unsigned int> *q_edges;   // query_edges
   vector<unsigned int> *q_weights; // query_weights
-  const static unsigned int FP_LEN = 1024; // length of a finger print
+  const static unsigned int FP_LEN = 128;//1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
   unsigned int r; // max_rad
   
@@ -97,9 +97,8 @@ public:
     
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       for(unsigned int j=0; j<num_nodes_g2; ++j){
-	// node-wise Tanimoto index
 	bitset<FP_LEN> bs1 = ecfp[prefix_g1+i] & ecfp[prefix_g2+j];
-	bitset<FP_LEN> bs2 = ecfp[prefix_g1+i] | ecfp[prefix_g2+j];
+	//bitset<FP_LEN> bs2 = ecfp[prefix_g1+i] | ecfp[prefix_g2+j];
 	double Tsim = (double)bs1.count();//(double)bs2.count();
 	costs[num_nodes_g2*i+j] = Tsim;
       }
@@ -109,6 +108,17 @@ public:
     vector<int> align_g1(num_nodes_g1, -1);
     vector<int> align_g2(num_nodes_g2, -1);
     GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
+
+    
+    // codes for DEBUG ************************************
+    /*
+    cout << endl;
+    cout << "Mapping " << g2 << " to " << g1 << endl;
+    for(unsigned int x=0; x<align_g2.size(); ++x){
+      cout << x << ": " << align_g2[x] << endl;
+    }
+    */
+    // ****************************************************
     
     // Merge g1 and g2 based on the alignment
     vector<unsigned int> degrees_g1(num_nodes_g1, 0);
@@ -176,9 +186,8 @@ public:
   // compute QJS distance between graphs g1 and g2
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
-    //double diff = comp_SI_union(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
     double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-    //double diff = align_graphs(g1, g2);
+
 
     if(diff<=0){
       return 0;
@@ -194,7 +203,9 @@ public:
     
     for(unsigned int dir=0; dir<=max_rad; ++dir){
       vector<unsigned int> visited(gdb->num_nodes_gid(gid), 0);
-      unsigned int pos = hash<std::string>()(generate_ECFP(gdb, gid, nid, dir, &visited))%FP_LEN;
+      //string code = generate_ECFP(gdb, gid, nid, dir, &visited);
+      string code = generate_PATH_FP(gdb, gid, nid, dir);
+      unsigned int pos = hash<std::string>()(code)%FP_LEN;
 
       if(!fp[pos]){
 	fp.set(pos);
@@ -217,6 +228,7 @@ public:
   }
   
   // Generate ECFP code for node nid in graph gid with maximum radius (max_rad)
+  // Original version 2023/07/28
   inline string
   generate_ECFP(GraphDB *gdb,
 		unsigned int gid,
@@ -226,7 +238,7 @@ public:
 		){
     
     (*visited)[nid] = 1;
-    string code = to_string((*gdb).node_label(gid, nid));
+    string code = "["+to_string((*gdb).node_label(gid, nid))+"]";
     
     if(max_rad > 0){
       vector<unsigned int>::iterator it = (*gdb).neighbors(gid, nid);
@@ -234,7 +246,7 @@ public:
       unsigned int degree = (*gdb).degree_gid(gid, nid);
       unsigned int rad = max_rad -1;
       
-      //code += "(";
+      code += "(";
       for(unsigned int i=0; i<degree; ++i){
 	unsigned int node = *(it+i);
 	double weight = *(it_w+i);
@@ -242,11 +254,66 @@ public:
 	  code += to_string(weight)+generate_ECFP(gdb, gid, node, rad, visited);
 	}
       }
-      //code += ")";
+      code += ")";
+    }
+
+    return code;
+  }
+
+  
+  // Generate Path-based FP for node nid in graph gid with maximum radius (max_rad)
+  // Path enumeration version 2023/09/05
+  inline string
+  generate_PATH_FP(GraphDB *gdb, unsigned int gid, unsigned int nid, unsigned int max_rad){    
+    list<string> PATHS;
+    list<pair<unsigned int, pair<unsigned int, pair<int, string>>>> queue;
+    queue.push_back(make_pair(max_rad, make_pair(nid, make_pair(-1, ""))));
+
+    while(!queue.empty()){
+      pair<unsigned int, pair<unsigned int, pair<int, string>>> elm  = queue.front();
+      queue.pop_front();
+      unsigned int rad = elm.first;
+      unsigned int node = (elm.second).first;
+      unsigned int label = (*gdb).node_label(gid, node);
+      int parent = ((elm.second).second).first;
+      string path = ((elm.second).second).second+"["+to_string(label)+"]";
+      //string path = ((elm.second).second).second+"["+to_string(node)+"]"; // code for DEBUG
+      
+      vector<unsigned int>::iterator it = (*gdb).neighbors(gid, node);
+      vector<double>::iterator it_w = (*gdb).neighbor_weights(gid, node);
+      unsigned int degree = (*gdb).degree_gid(gid, node);
+
+      if(max_rad!= r && degree == 1){
+	PATHS.push_back(path);
+      }else{
+	for(unsigned int i=0; i<degree; ++i){
+	  unsigned int neigh = *(it+i);
+	  unsigned int weight = *(it_w+i)*2;
+	  string sub_path = "-("+to_string(weight)+")-";
+	  
+	  if(neigh != parent){
+	    if(rad>1){
+	      queue.push_back(make_pair(rad-1, make_pair(neigh, make_pair((int)node, path+sub_path))));
+	    }else{
+	      PATHS.push_back(path+sub_path);
+	    }
+	  }
+	}
+      }
+    }
+
+    string code = "";
+    PATHS.sort();
+    list<string>::iterator it=PATHS.begin(), end=PATHS.end();
+    while(it != end){
+      //cout << *it << endl; // code for DEBUG
+      code += *it;
+      ++it;
     }
     
     return code;
   }
+
 
   // CODES FOR TEST
   inline double
@@ -278,24 +345,32 @@ public:
 	vector<int>::iterator it_g2, unsigned int size_g2,
 	vector<double>::iterator it_costs){
 
-    for(unsigned int m=r; m>=2; m--){
+    for(unsigned int val=r; val>0; --val){      
       for(unsigned int i=0; i<size_g1; ++i){
-	if(*(it_g1 +i) != -1){
+	unsigned int deg_g1 = gdb->degree_gid(g1, i);
+	if(*(it_g1+i)!=-1){
 	  continue;
 	}
 	
-	for(unsigned int j=0; j<size_g2; ++j){	  
-	  if(*(it_costs + size_g2*i+j) == m && *(it_g2 + j) == -1){
-	    *(it_g1 + i) = j;
-	    *(it_g2 + j) = i;
-	    break;
+	for(unsigned int j=0; j<size_g2; ++j){
+	  unsigned int index = size_g2*i+j;
+	  unsigned int deg_g2 = gdb->degree_gid(g2, j);
+
+	  if(*(it_g2+j) == -1){
+	    if(*(it_costs+index) > val){
+	      *(it_g1 + i) = j;
+	      *(it_g2 + j) = i;
+	      break;
+	    }
 	  }
 	}
       }
     }
+    
   }  
   
 
+  
   
 };
 
