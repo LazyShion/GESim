@@ -1,6 +1,6 @@
 /*
  * Similarity Search on a Graph Database
- * Last update: September 5th, 2023
+ * Last update: October 27th, 2023
  * Author: Hiroaki Shiokawa
  */
 #include <stdlib.h>
@@ -110,44 +110,21 @@ main(int argc, char **argv){
 
   // TEST CODES
   //cout << "********************************************************************" << endl;
+  unsigned int src_gid = 110;
+  unsigned int dst_gid = 115;
+  //cout << "sim(" << src_gid << ", " << dst_gid << ") = " << 1 - g_entropy.comp_QJS(src_gid, dst_gid) << endl;
   /*
-  unsigned int src_id = 0, dst_id = 11;
-  cout << "NID: " << src_id << endl;
-  string str1 = g_entropy.generate_PATH_FP(&gdb, 27, src_id, max_rad);
-  cout << "---" << endl;
-  cout << "NID: " << dst_id << endl;
-  string str2 = g_entropy.generate_PATH_FP(&gdb, 39, dst_id, max_rad);
-
-  if(str1 == str2){
+  string str1 = g_entropy.generate_PATH_FP(&gdb, src_gid, 3, max_rad);
+  string str2 = g_entropy.generate_PATH_FP(&gdb, dst_gid, 9, max_rad);
+  cout << str1 << endl;
+  cout << str2 << endl;
+  
+  if (str1 == str2){
     cout << "MATCH" << endl;
   }else{
     cout << "NG" << endl;
   }
   */
-  /*
-  for(unsigned int i=0; i<36; ++i){
-  unsigned int src_id = i, dst_id = i;
-  cout << "NID: " << src_id << endl;
-  string str1 = g_entropy.generate_PATH_FP(&gdb, 4, src_id, max_rad);
-  cout << "---" << endl;
-  cout << "NID: " << dst_id << endl;
-  string str2 = g_entropy.generate_PATH_FP(&gdb, 4, dst_id, max_rad);
-  
-  if(str1 == str2){
-    cout << "MATCH" << endl;
-  }else{
-    cout << "NG" << endl;
-  }
-  cout << "------------" << endl;
-  }
-  */
-
-  
-  //cout << "sim(27, 39) = " << 1 - g_entropy.comp_QJS(27, 39) << endl;
-  //cout << "sim(73, 39) = " << 1 - g_entropy.comp_QJS(73, 39) << endl;
-  //cout << "sim(804, 804) = " << 1 - g_entropy.comp_QJS(165, 165) << endl;
-  //cout << "sim(804, 804) = " << 1 - g_entropy.comp_QJS(804, 804) << endl;
-  
   //cout << "********************************************************************" << endl;
   
   if(result){
@@ -155,7 +132,9 @@ main(int argc, char **argv){
     for(unsigned int gid = 0, end=gdb.N; gid<end; ++gid){
       for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
 	double sim = g_entropy.comp_QJS(gid, gid1);
-	cout << gid << "\t" <<gid1 << "\t" << fixed << setprecision(5) << sim << endl;
+	sim = 1 - sim;
+	//cout << gid << "\t" <<gid1 << "\t" << fixed << setprecision(5) << sim << endl;
+	cout << fixed << setprecision(5) << sim << endl;
       }
     }
 

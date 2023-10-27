@@ -29,7 +29,7 @@ private:
   vector<unsigned int> *q_labels;  // query_labels
   vector<unsigned int> *q_edges;   // query_edges
   vector<unsigned int> *q_weights; // query_weights
-  const static unsigned int FP_LEN = 128;//1024; // length of a finger print
+  const static unsigned int FP_LEN = 1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
   unsigned int r; // max_rad
   
@@ -104,11 +104,22 @@ public:
       }
     }
 
+    /*
+    cout << endl;
+    for(unsigned int i=0; i<num_nodes_g1; ++i){
+      //cout << i << ": ";
+      for(unsigned int j=0; j<num_nodes_g2; ++j){
+	cout << costs[num_nodes_g2*i+j];
+      }
+      cout << endl;
+    }
+    */
+
     // Alignment by GRAAL
     vector<int> align_g1(num_nodes_g1, -1);
     vector<int> align_g2(num_nodes_g2, -1);
-    GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
-
+    GRAAL2(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
+    
     
     // codes for DEBUG ************************************
     /*
@@ -128,15 +139,18 @@ public:
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       int pos = align_g1[i];
 
+      // 中途半端にMATCHした部分は次数を合成する
+      // TODO ここの設定を見直す必要ありそう
       if(pos != -1 && costs[num_nodes_g2*i + pos] == 1){
 	degrees_g1[i] = gdb->merged_degree(g1, i, g2, pos);
       }else{
 	degrees_g1[i] = gdb->degree_gid(g1, i);
       }
 
+
       total_deg += degrees_g1[i];
     }
-
+    
     for(unsigned int j=0; j<num_nodes_g2; ++j){
       int pos = align_g2[j];
       if(pos == -1){
@@ -145,6 +159,7 @@ public:
       }      
     }
 
+    
     // Compute graph entropy (structural information)
     double gent = 0.0;
     for(unsigned int i=0; i<num_nodes_g1; ++i){
@@ -158,7 +173,6 @@ public:
       
       if(deg > 0){	
 	double x = (double)deg/total_deg;
-	//gent += tanh(cost) * x * log(x);
 	gent += x * log(x);
       }
     }
@@ -174,7 +188,6 @@ public:
       
       if(deg > 0){
 	double x = (double)deg/total_deg;
-	//gent += tanh(cost) * x * log(x);
 	gent += x * log(x);
       }
     }
@@ -187,7 +200,6 @@ public:
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
     double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-
 
     if(diff<=0){
       return 0;
@@ -202,14 +214,24 @@ public:
     bitset<FP_LEN> fp(0);
     
     for(unsigned int dir=0; dir<=max_rad; ++dir){
-      vector<unsigned int> visited(gdb->num_nodes_gid(gid), 0);
-      //string code = generate_ECFP(gdb, gid, nid, dir, &visited);
       string code = generate_PATH_FP(gdb, gid, nid, dir);
       unsigned int pos = hash<std::string>()(code)%FP_LEN;
 
-      if(!fp[pos]){
-	fp.set(pos);
+      // if pos is conflicted, ++pos until fp[pos] is satisfied.
+      while(true){
+	if(!fp[pos]){
+	  fp.set(pos);
+	  break;
+	}else{
+	  pos++;
+	}
       }
+      /*
+      if(gid==9 && nid==18){
+	cout << pos << " by " << code << " at " << dir << endl; 
+      }
+      */
+      
     }
     
     return fp;
@@ -260,14 +282,13 @@ public:
     return code;
   }
 
-  
   // Generate Path-based FP for node nid in graph gid with maximum radius (max_rad)
   // Path enumeration version 2023/09/05
   inline string
   generate_PATH_FP(GraphDB *gdb, unsigned int gid, unsigned int nid, unsigned int max_rad){    
     list<string> PATHS;
     list<pair<unsigned int, pair<unsigned int, pair<int, string>>>> queue;
-    queue.push_back(make_pair(max_rad, make_pair(nid, make_pair(-1, ""))));
+    queue.push_back(make_pair(max_rad, make_pair(nid, make_pair(-1, "#"))));
 
     while(!queue.empty()){
       pair<unsigned int, pair<unsigned int, pair<int, string>>> elm  = queue.front();
@@ -282,7 +303,7 @@ public:
       string path = ((elm.second).second).second+"["+to_string(label)+":"+to_string(degree)+"]";
       //string path = ((elm.second).second).second+"["+to_string(node)+"]"; // code for DEBUG
 
-      if(max_rad != r && degree == 1){
+      if(/*max_rad != r*/rad !=max_rad && degree == 1){
 	PATHS.push_back(path);
       }else{
 	for(unsigned int i=0; i<degree; ++i){
@@ -344,19 +365,49 @@ public:
 	vector<int>::iterator it_g2, unsigned int size_g2,
 	vector<double>::iterator it_costs){
 
-    for(unsigned int val=r; val>0; --val){      
+    for(unsigned int i=0; i<size_g1; ++i){
+      double tmp_cost = 0;
+      unsigned int tmp_id = 0;
+      unsigned int count = 0;
+
+      for(unsigned int j=0; j<size_g2; ++j){
+	unsigned int index = size_g2*i+j;
+	double cost = *(it_costs+index);
+	int check = *(it_g2+j);
+
+	if(tmp_cost < cost && check == -1){
+	  count++;
+	  tmp_cost = cost;
+	  tmp_id = j;
+	}	
+      }
+
+      if(count>0){
+	*(it_g2+tmp_id) = i;
+	*(it_g1+i) = tmp_id;
+      }
+    }
+  }
+
+  
+  // Run GRAAL old between g1 and g2
+  inline void
+  GRAAL2(unsigned int g1, unsigned int g2,
+	vector<int>::iterator it_g1, unsigned int size_g1,
+	vector<int>::iterator it_g2, unsigned int size_g2,
+	vector<double>::iterator it_costs){
+
+    for(unsigned int val=r; val>0; --val){
+      
       for(unsigned int i=0; i<size_g1; ++i){
-	unsigned int deg_g1 = gdb->degree_gid(g1, i);
 	if(*(it_g1+i)!=-1){
 	  continue;
 	}
 	
 	for(unsigned int j=0; j<size_g2; ++j){
 	  unsigned int index = size_g2*i+j;
-	  unsigned int deg_g2 = gdb->degree_gid(g2, j);
-
 	  if(*(it_g2+j) == -1){
-	    if(*(it_costs+index) > val){
+	    if(*(it_costs+index) > /*val*/ r-1){
 	      *(it_g1 + i) = j;
 	      *(it_g2 + j) = i;
 	      break;
@@ -364,6 +415,7 @@ public:
 	  }
 	}
       }
+      
     }
     
   }  

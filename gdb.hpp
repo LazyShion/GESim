@@ -167,9 +167,11 @@ public:
     unsigned int degree_g1 = degree_gid(g1, pos1);
     unsigned int degree_g2 = degree_gid(g2, pos2);
     unsigned int num_matches = 0;
+
     
     for(unsigned int i=0; i<degree_g1; ++i){
-      for(unsigned int j=0; i<degree_g2; ++j){
+      for(unsigned int j=0; j<degree_g2; ++j){
+
 	// match
 	if((*(neigh_g1+i) == *(neigh_g2+j)) && (*(weights_g1+i) == *(weights_g2+j))){
 	  ++num_matches;
