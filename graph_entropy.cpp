@@ -48,7 +48,6 @@ GraphEntropy::search_all(unsigned int query){
 // Return a graph entropy between graphs gid1 and gid2
 double
 GraphEntropy::graph_entropy(unsigned int gid1, unsigned int gid2){
-  //assert(gid1 >= 0 && gid1 < gdb->N && gid2 >= 0 && gid2 < gdb->N);
   return comp_QJS(gid1, gid2);
 }
 
