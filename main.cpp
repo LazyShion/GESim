@@ -108,7 +108,6 @@ main(int argc, char **argv){
   GraphDB gdb(bin_file);
   GraphEntropy g_entropy(&gdb, max_rad);
 
-
   // Test codes
   cout << g_entropy.graph_entropy(0, 1) << endl;
   
