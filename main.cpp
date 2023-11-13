@@ -1,6 +1,6 @@
 /*
  * Similarity Search on a Graph Database
- * Last update: October 27th, 2023
+ * Last update: November 10th, 2023
  * Author: Hiroaki Shiokawa
  */
 #include <stdlib.h>
@@ -108,27 +108,19 @@ main(int argc, char **argv){
   GraphDB gdb(bin_file);
   GraphEntropy g_entropy(&gdb, max_rad);
 
-  // TEST CODES
-  //cout << "********************************************************************" << endl;
-  unsigned int src_gid = 110;
-  unsigned int dst_gid = 115;
-  //cout << "sim(" << src_gid << ", " << dst_gid << ") = " << 1 - g_entropy.comp_QJS(src_gid, dst_gid) << endl;
-  /*
-  string str1 = g_entropy.generate_PATH_FP(&gdb, src_gid, 3, max_rad);
-  string str2 = g_entropy.generate_PATH_FP(&gdb, dst_gid, 9, max_rad);
-  cout << str1 << endl;
-  cout << str2 << endl;
+
+  // Test codes
+  cout << g_entropy.graph_entropy(0, 1) << endl;
   
-  if (str1 == str2){
-    cout << "MATCH" << endl;
-  }else{
-    cout << "NG" << endl;
+  vector<double> sims = g_entropy.graph_entropy_all(0);
+  for(unsigned int i=0; i<sims.size(); ++i){
+    cout << sims[i] << endl;
   }
-  */
-  //cout << "********************************************************************" << endl;
+  // ***************************************************
   
   if(result){
     // For All pairs sim test on zinc1000
+    /*
     for(unsigned int gid = 0, end=gdb.N; gid<end; ++gid){
       for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
 	double sim = g_entropy.comp_QJS(gid, gid1);
@@ -137,8 +129,7 @@ main(int argc, char **argv){
 	cout << fixed << setprecision(5) << sim << endl;
       }
     }
-
-
+    */
     // For default query test
     /*
     for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){

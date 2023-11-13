@@ -33,7 +33,7 @@ GraphEntropy::set_query(vector<unsigned int> *nodes,
 
 }
 
-
+// Test codes
 vector<pair<double, unsigned int>>
 GraphEntropy::search_all(unsigned int query){
   vector<pair<double, unsigned int>> result(gdb->N);
@@ -45,4 +45,25 @@ GraphEntropy::search_all(unsigned int query){
   return result;
 }
 
+// Return a graph entropy between graphs gid1 and gid2
+double
+GraphEntropy::graph_entropy(unsigned int gid1, unsigned int gid2){
+  //assert(gid1 >= 0 && gid1 < gdb->N && gid2 >= 0 && gid2 < gdb->N);
+  return comp_QJS(gid1, gid2);
+}
 
+// Return graph entropies between graph gid1 and each of gdb.
+vector<double>
+GraphEntropy::graph_entropy_all(unsigned int gid1){
+  vector<double> result(gdb->N-1);
+  unsigned int i=0;
+
+  for(unsigned int gid2=0, N=(*gdb).N; gid2<N; ++gid2){
+    if(gid2 != gid1){
+      result[i] = comp_QJS(gid1, gid2);
+      ++i;
+    }
+  }
+  
+  return result;
+}

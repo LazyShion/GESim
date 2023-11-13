@@ -45,14 +45,15 @@ public:
   
   GraphEntropy();
   GraphEntropy(GraphDB *db, unsigned int max_rad);
-  
+
   
   // ---------------------
   // Functions
   // ---------------------
   void set_query(vector<unsigned int> *nodes, vector<unsigned int> *labels, vector<unsigned int> *edges, vector<unsigned int> *weights);
   vector<pair<double, unsigned int>> search_all(unsigned int query);
-  
+  double graph_entropy(unsigned int gid1, unsigned int gid2);
+  vector<double> graph_entropy_all(unsigned int gid1);
   
   // ---------------------
   // Inlines 
@@ -98,38 +99,15 @@ public:
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       for(unsigned int j=0; j<num_nodes_g2; ++j){
 	bitset<FP_LEN> bs1 = ecfp[prefix_g1+i] & ecfp[prefix_g2+j];
-	//bitset<FP_LEN> bs2 = ecfp[prefix_g1+i] | ecfp[prefix_g2+j];
-	double Tsim = (double)bs1.count();//(double)bs2.count();
+	double Tsim = (double)bs1.count();
 	costs[num_nodes_g2*i+j] = Tsim;
       }
     }
 
-    /*
-    cout << endl;
-    for(unsigned int i=0; i<num_nodes_g1; ++i){
-      //cout << i << ": ";
-      for(unsigned int j=0; j<num_nodes_g2; ++j){
-	cout << costs[num_nodes_g2*i+j];
-      }
-      cout << endl;
-    }
-    */
-
     // Alignment by GRAAL
     vector<int> align_g1(num_nodes_g1, -1);
     vector<int> align_g2(num_nodes_g2, -1);
-    GRAAL2(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
-    
-    
-    // codes for DEBUG ************************************
-    /*
-    cout << endl;
-    cout << "Mapping " << g2 << " to " << g1 << endl;
-    for(unsigned int x=0; x<align_g2.size(); ++x){
-      cout << x << ": " << align_g2[x] << endl;
-    }
-    */
-    // ****************************************************
+    GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());    
     
     // Merge g1 and g2 based on the alignment
     vector<unsigned int> degrees_g1(num_nodes_g1, 0);
@@ -139,15 +117,11 @@ public:
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       int pos = align_g1[i];
 
-      // 中途半端にMATCHした部分は次数を合成する
-      // TODO ここの設定を見直す必要ありそう
       if(pos != -1 && costs[num_nodes_g2*i + pos] == 1){
 	degrees_g1[i] = gdb->merged_degree(g1, i, g2, pos);
       }else{
 	degrees_g1[i] = gdb->degree_gid(g1, i);
       }
-
-
       total_deg += degrees_g1[i];
     }
     
@@ -158,7 +132,6 @@ public:
 	total_deg += degrees_g2[j];
       }      
     }
-
     
     // Compute graph entropy (structural information)
     double gent = 0.0;
@@ -225,13 +198,7 @@ public:
 	}else{
 	  pos++;
 	}
-      }
-      /*
-      if(gid==9 && nid==18){
-	cout << pos << " by " << code << " at " << dir << endl; 
-      }
-      */
-      
+      }      
     }
     
     return fp;
@@ -249,41 +216,7 @@ public:
     return fp;
   }
   
-  // Generate ECFP code for node nid in graph gid with maximum radius (max_rad)
-  // Original version 2023/07/28
-  inline string
-  generate_ECFP(GraphDB *gdb,
-		unsigned int gid,
-		unsigned int nid,
-		unsigned int max_rad,
-		vector<unsigned int> *visited
-		){
-    
-    (*visited)[nid] = 1;
-    string code = "["+to_string((*gdb).node_label(gid, nid))+"]";
-    
-    if(max_rad > 0){
-      vector<unsigned int>::iterator it = (*gdb).neighbors(gid, nid);
-      vector<double>::iterator it_w = (*gdb).neighbor_weights(gid, nid);
-      unsigned int degree = (*gdb).degree_gid(gid, nid);
-      unsigned int rad = max_rad -1;
-      
-      code += "(";
-      for(unsigned int i=0; i<degree; ++i){
-	unsigned int node = *(it+i);
-	double weight = *(it_w+i);
-	if((*visited)[node] == 0){
-	  code += to_string(weight)+generate_ECFP(gdb, gid, node, rad, visited);
-	}
-      }
-      code += ")";
-    }
-
-    return code;
-  }
-
   // Generate Path-based FP for node nid in graph gid with maximum radius (max_rad)
-  // Path enumeration version 2023/09/05
   inline string
   generate_PATH_FP(GraphDB *gdb, unsigned int gid, unsigned int nid, unsigned int max_rad){    
     list<string> PATHS;
@@ -301,9 +234,8 @@ public:
       vector<double>::iterator it_w = (*gdb).neighbor_weights(gid, node);
       unsigned int degree = (*gdb).degree_gid(gid, node);
       string path = ((elm.second).second).second+"["+to_string(label)+":"+to_string(degree)+"]";
-      //string path = ((elm.second).second).second+"["+to_string(node)+"]"; // code for DEBUG
 
-      if(/*max_rad != r*/rad !=max_rad && degree == 1){
+      if(rad !=max_rad && degree == 1){
 	PATHS.push_back(path);
       }else{
 	for(unsigned int i=0; i<degree; ++i){
@@ -325,8 +257,8 @@ public:
     string code = "";
     PATHS.sort();
     list<string>::iterator it=PATHS.begin(), end=PATHS.end();
+    
     while(it != end){
-      //cout << *it << endl; // code for DEBUG
       code += *it;
       ++it;
     }
@@ -334,65 +266,9 @@ public:
     return code;
   }
 
-
-  // CODES FOR TEST
-  inline double
-  comp_Tanimoto(unsigned int gid1, unsigned int gid2){
-    
-    unsigned int pos = gdb->nodes_gid(gid1) - gdb->nodes.begin();
-    bitset<FP_LEN> fp_gid1 = ecfp[pos];
-    for(unsigned int i=0; i<gdb->num_nodes_gid(gid1); ++i){
-      fp_gid1 |= ecfp[pos+i];
-    }
-
-    pos = gdb->nodes_gid(gid2) - gdb->nodes.begin();
-    bitset<FP_LEN> fp_gid2 = ecfp[pos];
-    for(unsigned int i=0; i<gdb->num_nodes_gid(gid2); ++i){
-      fp_gid2 |= ecfp[pos+i];
-    }
-
-    bitset<FP_LEN> bs1 = fp_gid1 & fp_gid2;
-    bitset<FP_LEN> bs2 = fp_gid1 | fp_gid2;
-    double tanimoto_sim = (double)bs1.count()/(double)bs2.count();
-    
-    return tanimoto_sim;
-  }
-
-  // Run GRAAL between g1 and g2
-  inline void
-  GRAAL(unsigned int g1, unsigned int g2,
-	vector<int>::iterator it_g1, unsigned int size_g1,
-	vector<int>::iterator it_g2, unsigned int size_g2,
-	vector<double>::iterator it_costs){
-
-    for(unsigned int i=0; i<size_g1; ++i){
-      double tmp_cost = 0;
-      unsigned int tmp_id = 0;
-      unsigned int count = 0;
-
-      for(unsigned int j=0; j<size_g2; ++j){
-	unsigned int index = size_g2*i+j;
-	double cost = *(it_costs+index);
-	int check = *(it_g2+j);
-
-	if(tmp_cost < cost && check == -1){
-	  count++;
-	  tmp_cost = cost;
-	  tmp_id = j;
-	}	
-      }
-
-      if(count>0){
-	*(it_g2+tmp_id) = i;
-	*(it_g1+i) = tmp_id;
-      }
-    }
-  }
-
-  
   // Run GRAAL old between g1 and g2
   inline void
-  GRAAL2(unsigned int g1, unsigned int g2,
+  GRAAL(unsigned int g1, unsigned int g2,
 	vector<int>::iterator it_g1, unsigned int size_g1,
 	vector<int>::iterator it_g2, unsigned int size_g2,
 	vector<double>::iterator it_costs){
@@ -407,20 +283,16 @@ public:
 	for(unsigned int j=0; j<size_g2; ++j){
 	  unsigned int index = size_g2*i+j;
 	  if(*(it_g2+j) == -1){
-	    if(*(it_costs+index) > /*val*/ r-1){
+	    if(*(it_costs+index) > r-1){
 	      *(it_g1 + i) = j;
 	      *(it_g2 + j) = i;
 	      break;
 	    }
 	  }
 	}
-      }
-      
-    }
-    
+      }      
+    }    
   }  
-  
-
   
   
 };
