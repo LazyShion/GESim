@@ -1,4 +1,4 @@
-## Entropy-based Graph Similarity Search for Graph Databases
+## GESim
 The implementation of an entropy-based graph similarity search for a graph database.
 
 ## How to Use
@@ -17,7 +17,32 @@ $ make clean; make
 ```
 If you find `search` and `convert`, the build has been successfully completed.
 
+
+### How to generate an input file from SMILES
+#### Input SMILES file
+Prepare an input SMILES file like as follows:
+
+```
+0 CCN(c1ccccc1)c1cc(NC)[n+](C)c(C)n1
+1 CCOc1ccccc1C(=O)NCC1(N2CCN(CC)CC2)CCCCC1
+2 CCOc1ccccc1C(=O)NCC1(N2CCN(C3CC3)CC2)CCCCC1
+3 CCOc1ccccc1C(=O)NCC1(N2CCN(C(C)C)CC2)CCCCC1
+4 COc1ccccc1C(=O)NCC1(N2CCN(C(C)C)CC2)CCCCC1
+5 CCOc1ccccc1C(=O)NCC1(N2CCN(C3CCCC3)CC2)CCCCC1
+6 CCOc1ccccc1C(=O)NCC1(N2CCN(C3CCC3)CC2)CCCCC1
+7 CCOc1ccccc1C(=O)NCC1(N2CCN(C)CC2)CCCCC1
+```
+
+#### Generate a graph file from SMILES file
+Run the following python script to generate a graph file from a SMILES file.
+```
+$ python smiles2graph.py <SMILES file> <output file name> <mapping file name>
+```
+
+
 ### Usage
+
+
 #### Input file
 Input file need to include all graphs in a graph. The input file is specifically formatted as follows:
 
