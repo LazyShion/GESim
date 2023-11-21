@@ -82,16 +82,13 @@ parse_args(int argc, char **argv) {
 }
 
 void
-read_file(vector<unsigned int> *graph_index,
+read_file_impl(ifstream &finput,
+    vector<unsigned int> *graph_index,
 	  vector<unsigned int> *node_index,
 	  vector<unsigned int> *label_index,
 	  vector<unsigned int> *edge_index,
 	  vector<double> *weight_index){
 
-  // read input file
-  ifstream finput;
-  finput.open(input_file, fstream::in);
-  
   string buf;
   unsigned int gid;
   unsigned int nid;
@@ -139,7 +136,6 @@ read_file(vector<unsigned int> *graph_index,
       E+=2;
     }
   }
-  finput.close();
   
   // construct index
   (*graph_index).resize(N, 0);
@@ -181,17 +177,43 @@ read_file(vector<unsigned int> *graph_index,
   
 }
 
+void
+read_file(vector<unsigned int> *graph_index,
+	  vector<unsigned int> *node_index,
+	  vector<unsigned int> *label_index,
+	  vector<unsigned int> *edge_index,
+	  vector<double> *weight_index){
+
+  // read input file
+  ifstream finput;
+  finput.open(input_file, fstream::in);
+  read_file_impl(finput, graph_index, node_index, label_index, edge_index, weight_index);
+  finput.close();
+}
 
 void
-write_binary(vector<unsigned int> *graph_index,
+read_file(const string &input_file_name,
+    vector<unsigned int> *graph_index,
+	  vector<unsigned int> *node_index,
+	  vector<unsigned int> *label_index,
+	  vector<unsigned int> *edge_index,
+	  vector<double> *weight_index){
+
+  // read input file
+  ifstream finput;
+  finput.open(input_file_name, fstream::in);
+  read_file_impl(finput, graph_index, node_index, label_index, edge_index, weight_index);
+  finput.close();
+}
+
+void
+write_binary_impl(ofstream &foutput,
+    vector<unsigned int> *graph_index,
 	  vector<unsigned int> *node_index,
 	  vector<unsigned int> *label_index,
 	  vector<unsigned int> *edge_index,
 	  vector<double> *weight_index){
   
-  ofstream foutput;
-  foutput.open(output_file, fstream::out | fstream::binary);
-
   // output statistics
   foutput.write((char *)(&N), 4);
   foutput.write((char *)(&V), 4);
@@ -226,11 +248,34 @@ write_binary(vector<unsigned int> *graph_index,
     double dump = (*weight_index)[i];
     foutput.write((char *)(&dump), 8);
   }
-  
-  foutput.close();
-  
 }
 
+void
+write_binary(vector<unsigned int> *graph_index,
+	  vector<unsigned int> *node_index,
+	  vector<unsigned int> *label_index,
+	  vector<unsigned int> *edge_index,
+	  vector<double> *weight_index){
+  
+  ofstream foutput;
+  foutput.open(output_file, fstream::out | fstream::binary);
+  write_binary_impl(foutput, graph_index, node_index, label_index, edge_index, weight_index);
+  foutput.close();
+}
+
+void
+write_binary(const string &output_file_name,
+    vector<unsigned int> *graph_index,
+	  vector<unsigned int> *node_index,
+	  vector<unsigned int> *label_index,
+	  vector<unsigned int> *edge_index,
+	  vector<double> *weight_index){
+  
+  ofstream foutput;
+  foutput.open(output_file_name, fstream::out | fstream::binary);
+  write_binary_impl(foutput, graph_index, node_index, label_index, edge_index, weight_index);
+  foutput.close();
+}
 
 int
 main(int argc, char **argv){
