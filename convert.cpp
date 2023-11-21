@@ -1,3 +1,4 @@
+#include <pybind11/pybind11.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string>
@@ -13,6 +14,8 @@
 #include "util.hpp"
 
 using namespace std;
+
+namespace py = pybind11;
 
 char *input_file = NULL;
 char *output_file = NULL;
@@ -275,6 +278,23 @@ write_binary(const string &output_file_name,
   foutput.open(output_file_name, fstream::out | fstream::binary);
   write_binary_impl(foutput, graph_index, node_index, label_index, edge_index, weight_index);
   foutput.close();
+}
+
+void
+convert_graph_to_binary(const string &input_file_name, const string &output_file_name){
+  vector<unsigned int> graph_index(0);
+  vector<unsigned int> node_index(0);
+  vector<unsigned int> label_index(0);
+  vector<unsigned int> edge_index(0);
+  vector<double> weight_index(0);
+
+  read_file(input_file_name, &graph_index, &node_index, &label_index, &edge_index, &weight_index);
+  write_binary(output_file_name, &graph_index, &node_index, &label_index, &edge_index, &weight_index);
+}
+
+PYBIND11_MODULE(convert, m) {
+  m.def("convert_graph_to_binary", &convert_graph_to_binary, "Convert graph data from text to binary format",
+      py::arg("input_file_name"), py::arg("output_file_name"));
 }
 
 int
