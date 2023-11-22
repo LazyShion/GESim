@@ -3,22 +3,30 @@ from setuptools import setup
 
 __version__ = "0.0.1"
 
+INSTALL_REQUIRES = [
+    'rdkit~=2023.9.1',
+    'pybind11~=2.11.1'
+]
+PACKAGES = [
+    'gesim'
+]
+
 ext_modules = [
     Pybind11Extension(
         "gesim.convert",
-        ["convert.cpp"],
+        ["src/convert.cpp"],
         extra_compile_args=['-O3', '-Wall', '-std=c++11'],
         define_macros=[("VERSION_INFO", __version__)],
     ),
     Pybind11Extension(
         "gesim.gdb",
-        ["gdb.cpp"],
+        ["src/gdb.cpp"],
         extra_compile_args=['-O3', '-Wall', '-std=c++11'],
         define_macros=[("VERSION_INFO", __version__)],
     ),
     Pybind11Extension(
         "gesim.graph_entropy",
-        ["graph_entropy.cpp"],
+        ["src/graph_entropy.cpp"],
         extra_compile_args=['-O3', '-Wall', '-std=c++11'],
         define_macros=[("VERSION_INFO", __version__)],
     ),
@@ -37,4 +45,6 @@ setup(
     cmdclass={"build_ext": build_ext},
     zip_safe=False,
     python_requires=">=3.11",
+    install_requires=INSTALL_REQUIRES,
+    packages=PACKAGES,
 )
