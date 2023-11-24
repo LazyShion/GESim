@@ -5,7 +5,6 @@ from gesim import convert, gdb, graph_entropy
 
 OUTPUT_GRAPH_FILE = "scr/graph.txt"
 OUTPUT_GRAPH_BIN_FILE = "scr/graph.bin"
-OUTPUT_MAP_FILE = "scr/map.txt"
 
 
 def graph_entropy_similarity(
@@ -94,7 +93,4 @@ def create_graph_from_mols(
 
     with open(OUTPUT_GRAPH_FILE, 'w') as f:
         f.writelines(output_list)
-    with open(OUTPUT_MAP_FILE, 'w') as f:
-        map_list = [f"{i} {smi}\n" for i, smi in enumerate(mol_list)]
-        f.writelines(map_list)
  
