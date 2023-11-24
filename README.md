@@ -2,6 +2,14 @@
 
 ## How to setup
 
+### Requirements
+
+- gcc: 11.3.1 (or later)
+- rdkit: 2023.9.1
+- pybind11: 2.11.1
+
+### Installation
+
 1. Clone this repository
 
 ```bash
@@ -30,3 +38,12 @@ mols = [mol1, mol2, Chem.MolFromSmiles('CCC')]
 gesim.graph_entropy_similarity(mol1, mol2)
 gesim.graph_entropy_similarity_batch(mol1, mols)
 ```
+
+## Contact
+
+- Hiroaki Shiokawa
+- Shoichi Ishida
+
+## License
+
+This package is distributed under the ###.
