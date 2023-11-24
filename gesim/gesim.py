@@ -1,10 +1,9 @@
+import os
 from typing import List
+import tempfile
 
 from rdkit import Chem
 from gesim import convert, gdb, graph_entropy
-
-OUTPUT_GRAPH_FILE = "scr/graph.txt"
-OUTPUT_GRAPH_BIN_FILE = "scr/graph.bin"
 
 
 def graph_entropy_similarity(
@@ -31,9 +30,12 @@ def graph_entropy_similarity(
     """
 
     mol_list = [mol1, mol2]
-    create_graph_from_mols(mol_list)
-    convert.convert_graph_to_binary(OUTPUT_GRAPH_FILE, OUTPUT_GRAPH_BIN_FILE)
-    db = gdb.GraphDB(OUTPUT_GRAPH_BIN_FILE)
+    with tempfile.TemporaryDirectory(prefix='gesim_') as tmpdir:
+        tmp_file = os.path.join(tmpdir, 'graph.txt')
+        tmp_bin_file = os.path.join(tmpdir, 'graph.bin')
+        create_graph_from_mols(mol_list, tmp_file)
+        convert.convert_graph_to_binary(tmp_file, tmp_bin_file)
+        db = gdb.GraphDB(tmp_bin_file)
     ge_calculator = graph_entropy.GraphEntropy(db, r)
     ge_value = ge_calculator.graph_entropy(0, 1)
     return ge_value if return_graph_entropy else 1 - ge_value
@@ -65,21 +67,26 @@ def graph_entropy_similarity_batch(
                      `True`, returns a list of graph entropy values for each comparison.
     """
     mol_list = [mol_query] + mols
-    create_graph_from_mols(mol_list)
-    convert.convert_graph_to_binary(OUTPUT_GRAPH_FILE, OUTPUT_GRAPH_BIN_FILE)
-    db = gdb.GraphDB(OUTPUT_GRAPH_BIN_FILE)
+    with tempfile.TemporaryDirectory(prefix='gesim_') as tmpdir:
+        tmp_file = os.path.join(tmpdir, 'graph.txt')
+        tmp_bin_file = os.path.join(tmpdir, 'graph.bin')
+        create_graph_from_mols(mol_list, tmp_file)
+        convert.convert_graph_to_binary(tmp_file, tmp_bin_file)
+        db = gdb.GraphDB(tmp_bin_file)
     ge_calculator = graph_entropy.GraphEntropy(db, r)
     ge_values = ge_calculator.graph_entropy_all(0)
     return ge_values if return_graph_entropy else [1 - x for x in ge_values]
 
 
 def create_graph_from_mols(
-    mol_list: List[Chem.Mol]) -> None:
+    mol_list: List[Chem.Mol],
+    output_graph_file: str) -> None:
     """Generate graph representations of a given list of molecules and save them to a file.
 
     Args:
         mol_list (List[Chem.Mol]): List of RDKit Mol objects to be converted into graph
                                    representations.
+        output_graph_file (str): Path to output of graph data
     """
     output_list = []
     for i, mol in enumerate(mol_list):
@@ -91,6 +98,6 @@ def create_graph_from_mols(
             crs_graph += f"e {b.GetIdx()} {b.GetBeginAtomIdx()} {b.GetEndAtomIdx()} {b.GetBondTypeAsDouble()}\n"
         output_list.append(crs_graph)
 
-    with open(OUTPUT_GRAPH_FILE, 'w') as f:
+    with open(output_graph_file, 'w') as f:
         f.writelines(output_list)
  
