@@ -197,6 +197,7 @@ public:
 	  break;
 	}else{
 	  pos++;
+	  pos = pos%FP_LEN;
 	}
       }      
     }

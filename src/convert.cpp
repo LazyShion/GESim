@@ -125,8 +125,7 @@ read_file_impl(ifstream &finput,
       ++V;
       
       if(l2i[nlabel] == 0){
-	l2i[nlabel] = L;
-	++L;
+	l2i[nlabel] = (unsigned int)stoi(nlabel); 
       }
       
     }else if(buf == "e"){
