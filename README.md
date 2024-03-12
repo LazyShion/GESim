@@ -13,13 +13,13 @@
 1. Clone this repository
 
 ```bash
-git clone git@github.com:LazyShion/graph_entropy.git
+git clone git@github.com:LazyShion/GESim.git
 ```
 
 2. Install GESim
 
 ```bash
-cd graph_entropy/
+cd GESim/
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade .
