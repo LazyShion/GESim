@@ -137,7 +137,7 @@ def get_graph_from_mol(
     crs_graph = ""
     crs_graph += "t {index}\n"  # placeholder
     for a in mol.GetAtoms():
-        crs_graph += f"v {a.GetIdx()} {a.GetAtomicNum()}\n"
+        crs_graph += f"v {a.GetIdx()} {a.GetSymbol()}\n"
     for b in mol.GetBonds():
         crs_graph += f"e {b.GetIdx()} {b.GetBeginAtomIdx()} {b.GetEndAtomIdx()} {b.GetBondTypeAsDouble()}\n"
     return crs_graph
