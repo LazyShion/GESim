@@ -9,11 +9,16 @@ namespace py = pybind11;
 GraphEntropy::GraphEntropy(){}
 
 
-GraphEntropy::GraphEntropy(GraphDB *db, unsigned int max_rad){
+GraphEntropy::GraphEntropy(GraphDB *db, unsigned int max_rad, unsigned int uncertainty){
   gdb = db;
   ecfp.resize(gdb->V);
   unsigned int pos = 0;
   r = max_rad;
+  u = uncertainty;
+
+  if(r <= u){
+    u = 1;
+  }  
 
   for(unsigned int gid=0; gid<gdb->N; ++gid){
     for(unsigned int nid=0, deg=gdb->num_nodes_gid(gid); nid<deg; ++nid){

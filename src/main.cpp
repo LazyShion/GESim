@@ -1,6 +1,6 @@
 /*
- * Similarity Search on a Graph Database
- * Last update: November 10th, 2023
+ * GESim
+ * Last update: April 12th, 2024
  * Author: Hiroaki Shiokawa
  */
 #include <stdlib.h>
@@ -27,6 +27,7 @@ char *bin_file = NULL;
 bool result = false;
 //char *logfile = NULL;
 unsigned int max_rad = 4;
+unsigned int uncertainty = 1;
 unsigned int gid = 0;
 
 void
@@ -37,14 +38,15 @@ usage(char *prog_name, const string more, bool help){
     cerr << "[Info] " << more << endl;    
   }
 
-  cerr << "[Usage] " << prog_name << " -i <bin_file_name> -q <query_node_id> -r <max_radius> [-D] [-H]" << endl;
+  cerr << "[Usage] " << prog_name << " -i <bin_file_name> -q <query_node_id> [-r <max_radius>] [-u <uncertainty>] [-D] [-H]" << endl;
   // Display help
   if(help){
     cerr << "\t-i <sim_file_name>: Set the input file name." << endl;
     cerr << "\t-q <query_node_id>: Set a query node id." << endl;
-    cerr << "\t-r <max_radius>: Set the maximum diameter." << endl;
-    cerr << "\t-D: Display clusteering results" << endl;
-    cerr << "\t-H: Display help menu." << endl;
+    cerr << "\t-r <max_radius>: [Optional] Set the maximum radius." << endl;
+    cerr << "\t-u <uncertainty>: [Optional] Set a uncertainty value between 0 to <max_radius>." << endl;
+    cerr << "\t-D: [Optional] Display clusteering results" << endl;
+    cerr << "\t-H: [Optional] Display help menu." << endl;
     cerr << "" << endl;
   }
   cerr << endl;
@@ -83,6 +85,11 @@ parse_args(int argc, char **argv) {
 	max_rad = (unsigned int) atoi(argv[i+1]);
 	i+=1;
 	break;
+      case 'u':
+	check_args(i+1, argc, argv[0], "Invalid arguments at "+string(argv[i]));
+	uncertainty = (unsigned int) atoi(argv[i+1]);
+	i+=1;
+	break;	
       case 'D':
 	result = true;
 	break;
@@ -106,17 +113,10 @@ int
 main(int argc, char **argv){
   parse_args(argc, argv);
   GraphDB gdb(bin_file);
-  GraphEntropy g_entropy(&gdb, max_rad);
+  GraphEntropy g_entropy(&gdb, max_rad, uncertainty);  
 
-  // Test codes
-  cout << g_entropy.graph_entropy(0, 1) << endl;
-  
-  vector<double> sims = g_entropy.graph_entropy_all(0);
-  for(unsigned int i=0; i<sims.size(); ++i){
-    cout << sims[i] << endl;
-  }
-  // ***************************************************
-  
+  //vector<double> results = g_entropy.search_all(gid);
+
   if(result){
     // For All pairs sim test on zinc1000
     /*
@@ -130,12 +130,12 @@ main(int argc, char **argv){
     }
     */
     // For default query test
-    /*
+
     for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
       double sim = g_entropy.comp_QJS(gid, gid1);
       cout << gid << "\t" <<gid1 << "\t" << fixed << setprecision(5) << sim << endl;
     }
-    */
+
   }
   
 }

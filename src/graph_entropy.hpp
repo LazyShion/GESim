@@ -32,6 +32,7 @@ private:
   const static unsigned int FP_LEN = 1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
   unsigned int r; // max_rad
+  unsigned int u; // uncertainty  
   
 public:
   // ---------------------
@@ -44,7 +45,7 @@ public:
   // ---------------------
   
   GraphEntropy();
-  GraphEntropy(GraphDB *db, unsigned int max_rad);
+  GraphEntropy(GraphDB *db, unsigned int max_rad, unsigned int uncertainty);
 
   
   // ---------------------
@@ -284,7 +285,7 @@ public:
 	for(unsigned int j=0; j<size_g2; ++j){
 	  unsigned int index = size_g2*i+j;
 	  if(*(it_g2+j) == -1){
-	    if(*(it_costs+index) > r-1){
+	    if(*(it_costs+index) > r-u){
 	      *(it_g1 + i) = j;
 	      *(it_g2 + j) = i;
 	      break;
