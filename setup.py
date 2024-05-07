@@ -1,7 +1,7 @@
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 INSTALL_REQUIRES = [
     'rdkit~=2023.9.1',
