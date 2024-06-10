@@ -1,8 +1,8 @@
-//#include <pybind11/pybind11.h>
+#include <pybind11/pybind11.h>
 #include "gdb.hpp"
 
 using namespace std;
-//namespace py = pybind11;
+namespace py = pybind11;
 
 GraphDB::GraphDB(){}
 
@@ -33,7 +33,7 @@ GraphDB::read_from_binary(char *bin_file){
   
   finput.close();  
 }
-/*
+
 PYBIND11_MODULE(gdb, m) {
     py::class_<GraphDB>(m, "GraphDB")
         .def(py::init<>())
@@ -58,4 +58,4 @@ PYBIND11_MODULE(gdb, m) {
         .def_readwrite("edges", &GraphDB::edges)
         .def_readwrite("weights", &GraphDB::weights);
 }
-*/
+
