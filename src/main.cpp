@@ -130,12 +130,15 @@ main(int argc, char **argv){
     }
     */
     // For default query test
-
     for(unsigned int gid1 = 0, end1=gdb.N; gid1<end1; ++gid1){
-      double sim = g_entropy.comp_QJS(gid, gid1);
+      double sim = g_entropy.comp_QJS_Best(gid, gid1);
+      //double sim = g_entropy.comp_QJS(gid, gid1);
       cout << gid << "\t" <<gid1 << "\t" << fixed << setprecision(5) << sim << endl;
     }
-
+    /*
+    cout << "Original: " << 1 - g_entropy.comp_QJS(0, 1) << endl;
+    cout << "Updated: " << 1 - g_entropy.comp_QJS_Best(0, 1) << endl;
+    */
   }
   
 }

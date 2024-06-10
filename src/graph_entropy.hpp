@@ -182,6 +182,33 @@ public:
     }
   }
 
+  //
+  inline double
+  comp_QJS_Best(unsigned int g1, unsigned int g2){
+    double original = (comp_SI(g1)+comp_SI(g2))/2;
+    double unified = numeric_limits<double>::max();
+    double diff = numeric_limits<double>::max();
+    unsigned int tmp_u = u;
+
+    for(unsigned int i=0, end=r; i<end; ++i){
+      u = i;
+      unified = align_graphs(g1, g2);
+      double tmp_diff = unified - original;
+
+      if(tmp_diff < diff){
+	diff = tmp_diff;
+      }
+    }
+
+    u = tmp_u;
+
+    if(diff <= 0){
+      return 0;
+    }else{
+      return sqrt(diff);
+    }
+  }
+
   // generate ecfp code for a node nid in a graph gid
   inline bitset<FP_LEN>
   generate_ecfp_nid(GraphDB *gdb, unsigned int gid, unsigned int nid, unsigned int max_rad){
