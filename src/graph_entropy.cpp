@@ -60,6 +60,13 @@ GraphEntropy::graph_entropy(unsigned int gid1, unsigned int gid2){
   return comp_QJS(gid1, gid2);
 }
 
+// Return a graph entropy between graphs gid1 and gid2
+double
+GraphEntropy::graph_entropy_best(unsigned int gid1, unsigned int gid2){
+  return comp_QJS_Best(gid1, gid2);
+}
+
+
 // Return graph entropies between graph gid1 and each of gdb.
 vector<double>
 GraphEntropy::graph_entropy_all(unsigned int gid1){
@@ -69,6 +76,22 @@ GraphEntropy::graph_entropy_all(unsigned int gid1){
   for(unsigned int gid2=0, N=(*gdb).N; gid2<N; ++gid2){
     if(gid2 != gid1){
       result[i] = comp_QJS(gid1, gid2);
+      ++i;
+    }
+  }
+  
+  return result;
+}
+
+// Return graph entropies between graph gid1 and each of gdb.
+vector<double>
+GraphEntropy::graph_entropy_all_best(unsigned int gid1){
+  vector<double> result(gdb->N-1);
+  unsigned int i=0;
+
+  for(unsigned int gid2=0, N=(*gdb).N; gid2<N; ++gid2){
+    if(gid2 != gid1){
+      result[i] = comp_QJS_Best(gid1, gid2);
       ++i;
     }
   }

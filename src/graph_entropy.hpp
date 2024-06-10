@@ -54,7 +54,9 @@ public:
   void set_query(vector<unsigned int> *nodes, vector<unsigned int> *labels, vector<unsigned int> *edges, vector<unsigned int> *weights);
   vector<pair<double, unsigned int>> search_all(unsigned int query);
   double graph_entropy(unsigned int gid1, unsigned int gid2);
+  double graph_entropy_best(unsigned int gid1, unsigned int gid2);
   vector<double> graph_entropy_all(unsigned int gid1);
+  vector<double> graph_entropy_all_best(unsigned int gid1);
   
   // ---------------------
   // Inlines 
