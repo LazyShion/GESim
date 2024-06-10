@@ -83,6 +83,7 @@ GraphEntropy::graph_entropy_all(unsigned int gid1){
   return result;
 }
 
+
 // Return graph entropies between graph gid1 and each of gdb.
 vector<double>
 GraphEntropy::graph_entropy_all_best(unsigned int gid1){
@@ -98,7 +99,6 @@ GraphEntropy::graph_entropy_all_best(unsigned int gid1){
   
   return result;
 }
-
 
 PYBIND11_MODULE(graph_entropy, m) {
     py::class_<GraphEntropy>(m, "GraphEntropy")
