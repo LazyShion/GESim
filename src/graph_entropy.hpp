@@ -191,6 +191,7 @@ public:
     double unified = numeric_limits<double>::max();
     double diff = numeric_limits<double>::max();
     unsigned int tmp_u = u;
+    unsigned int best_u = 0;
 
     for(unsigned int i=0, end=r; i<end; ++i){
       u = i;
@@ -198,14 +199,19 @@ public:
       double tmp_diff = unified - original;
 
       if(tmp_diff < diff){
-	diff = tmp_diff;
+        diff = tmp_diff;
+        best_u = u;
       }
     }
 
     u = tmp_u;
 
     if(diff <= 0){
-      return 0;
+      if(best_u > 0){
+        return pow(0.05, (1.0/best_u));
+      }else{
+        return 0;
+      }
     }else{
       return sqrt(diff);
     }

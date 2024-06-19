@@ -4,6 +4,7 @@ import tempfile
 
 import numpy as np
 from rdkit import Chem
+from rdkit.Chem.AtomPairs.Utils import GetAtomCode
 
 from gesim import convert, gdb, graph_entropy
 
@@ -112,7 +113,7 @@ def graph_entropy_similarity_batch(
         return ge_values
     similarities = [1 - x for x in ge_values]
     if use_logistic_scaler:
-        similarities = [logistic_function_scaler(s, L=1, k=7, x0=0.4) for s in similarities]
+        similarities = [logistic_function_scaler(s, L=1, k=7, x0=0.45) for s in similarities]
     return similarities
 
 
@@ -151,7 +152,7 @@ def get_graph_from_mol(
     crs_graph = ""
     crs_graph += "t {index}\n"  # placeholder
     for a in mol.GetAtoms():
-        crs_graph += f"v {a.GetIdx()} {a.GetSymbol()}\n"
+        crs_graph += f"v {a.GetIdx()} {GetAtomCode(a)}\n"
     for b in mol.GetBonds():
         crs_graph += f"e {b.GetIdx()} {b.GetBeginAtomIdx()} {b.GetEndAtomIdx()} {b.GetBondTypeAsDouble()}\n"
     return crs_graph
