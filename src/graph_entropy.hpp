@@ -197,9 +197,7 @@ public:
 	  break;
 	}else{
 	  pos++;
-    if (pos>=FP_LEN){
-      pos=0;
-    }
+	  pos = pos%FP_LEN;
 	}
       }      
     }
