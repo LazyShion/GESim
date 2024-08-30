@@ -32,6 +32,7 @@ private:
   const static unsigned int FP_LEN = 1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
   unsigned int r; // max_rad
+
   
 public:
   // ---------------------
@@ -53,7 +54,8 @@ public:
   void set_query(vector<unsigned int> *nodes, vector<unsigned int> *labels, vector<unsigned int> *edges, vector<unsigned int> *weights);
   vector<pair<double, unsigned int>> search_all(unsigned int query);
   double graph_entropy(unsigned int gid1, unsigned int gid2);
-  vector<double> graph_entropy_all(unsigned int gid1);
+  vector<double> graph_entropy_all(unsigned int gid1);  
+  vector<vector<int>> match_mapping(unsigned int gid1, unsigned int gid2);
   
   // ---------------------
   // Inlines 
@@ -107,8 +109,8 @@ public:
     // Alignment by GRAAL
     vector<int> align_g1(num_nodes_g1, -1);
     vector<int> align_g2(num_nodes_g2, -1);
-    GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());    
-    
+    GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
+
     // Merge g1 and g2 based on the alignment
     vector<unsigned int> degrees_g1(num_nodes_g1, 0);
     vector<unsigned int> degrees_g2(num_nodes_g2, 0);
@@ -167,13 +169,48 @@ public:
 
     return -gent;
   }
+  
+  // Return match mapping between g1 and g2
+  inline pair<vector<int>, vector<int>>
+  align_match(unsigned int g1, unsigned int g2){
+    // Initialization
+    unsigned int num_nodes_g1 = gdb->num_nodes_gid(g1);
+    unsigned int num_nodes_g2 = gdb->num_nodes_gid(g2);
+    if(num_nodes_g1 > num_nodes_g2){
+      swap(g1, g2);
+      swap(num_nodes_g1, num_nodes_g2);
+    }
 
+    // Costs computation
+    vector<double> costs(num_nodes_g1*num_nodes_g2, -1);
+    vector<unsigned int>::iterator node_g1 = gdb->nodes_gid(g1);
+    vector<unsigned int>::iterator node_g2 = gdb->nodes_gid(g2);
+    unsigned int prefix_g1 = node_g1 - gdb->nodes.begin();
+    unsigned int prefix_g2 = node_g2 - gdb->nodes.begin();
+    unsigned int vol_g1 = gdb->num_edges_gid(g1);
+    unsigned int vol_g2 = gdb->num_edges_gid(g2);
+    
+    for(unsigned int i=0; i<num_nodes_g1; ++i){
+      for(unsigned int j=0; j<num_nodes_g2; ++j){
+	bitset<FP_LEN> bs1 = ecfp[prefix_g1+i] & ecfp[prefix_g2+j];
+	double Tsim = (double)bs1.count();
+	costs[num_nodes_g2*i+j] = Tsim;
+      }
+    }
+
+    // Alignment by GRAAL
+    vector<int> align_g1(num_nodes_g1, -1);
+    vector<int> align_g2(num_nodes_g2, -1);
+    GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
+
+    return make_pair(align_g1, align_g2);
+  }
 
   // compute QJS distance between graphs g1 and g2
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
     double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-
+    
     if(diff<=0){
       return 0;
     }else{
@@ -285,8 +322,8 @@ public:
 	  unsigned int index = size_g2*i+j;
 	  if(*(it_g2+j) == -1){
 	    if(*(it_costs+index) > r-1){
-	      *(it_g1 + i) = j;
-	      *(it_g2 + j) = i;
+	      *(it_g1 + i) = 1;//j;
+	      *(it_g2 + j) = 1;//i;
 	      break;
 	    }
 	  }

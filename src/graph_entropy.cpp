@@ -1,10 +1,10 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+//#include <pybind11/pybind11.h>
+//#include <pybind11/stl.h>
 #include "graph_entropy.hpp"
 
 using namespace std;
 
-namespace py = pybind11;
+//namespace py = pybind11;
 
 GraphEntropy::GraphEntropy(){}
 
@@ -55,6 +55,17 @@ GraphEntropy::graph_entropy(unsigned int gid1, unsigned int gid2){
   return comp_QJS(gid1, gid2);
 }
 
+// Return match mapping between g1 and g2
+vector<vector<int>>
+GraphEntropy::match_mapping(unsigned int gid1, unsigned int gid2){
+  pair<vector<int>, vector<int>> p = align_match(gid1, gid2);
+  vector<vector<int>> mapping(2);
+  mapping[0] = p.first;
+  mapping[1] = p.second;
+
+  return mapping;
+}
+
 // Return graph entropies between graph gid1 and each of gdb.
 vector<double>
 GraphEntropy::graph_entropy_all(unsigned int gid1){
@@ -70,7 +81,7 @@ GraphEntropy::graph_entropy_all(unsigned int gid1){
   
   return result;
 }
-
+/*
 PYBIND11_MODULE(graph_entropy, m) {
     py::class_<GraphEntropy>(m, "GraphEntropy")
         .def(py::init<>())
@@ -80,3 +91,4 @@ PYBIND11_MODULE(graph_entropy, m) {
         .def("graph_entropy", &GraphEntropy::graph_entropy)
         .def("graph_entropy_all", &GraphEntropy::graph_entropy_all);
 }
+*/
