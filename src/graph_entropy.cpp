@@ -89,5 +89,6 @@ PYBIND11_MODULE(graph_entropy, m) {
         .def("set_query", &GraphEntropy::set_query)
         .def("search_all", &GraphEntropy::search_all)
         .def("graph_entropy", &GraphEntropy::graph_entropy)
-        .def("graph_entropy_all", &GraphEntropy::graph_entropy_all);
+        .def("graph_entropy_all", &GraphEntropy::graph_entropy_all)
+        .def("match_mapping", &GraphEntropy::match_mapping);
 }
