@@ -58,3 +58,4 @@ PYBIND11_MODULE(gdb, m) {
         .def_readwrite("edges", &GraphDB::edges)
         .def_readwrite("weights", &GraphDB::weights);
 }
+

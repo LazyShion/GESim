@@ -55,6 +55,17 @@ GraphEntropy::graph_entropy(unsigned int gid1, unsigned int gid2){
   return comp_QJS(gid1, gid2);
 }
 
+// Return match mapping between g1 and g2
+vector<vector<int>>
+GraphEntropy::match_mapping(unsigned int gid1, unsigned int gid2){
+  pair<vector<int>, vector<int>> p = align_match(gid1, gid2);
+  vector<vector<int>> mapping(2);
+  mapping[0] = p.first;
+  mapping[1] = p.second;
+
+  return mapping;
+}
+
 // Return graph entropies between graph gid1 and each of gdb.
 vector<double>
 GraphEntropy::graph_entropy_all(unsigned int gid1){
@@ -78,5 +89,6 @@ PYBIND11_MODULE(graph_entropy, m) {
         .def("set_query", &GraphEntropy::set_query)
         .def("search_all", &GraphEntropy::search_all)
         .def("graph_entropy", &GraphEntropy::graph_entropy)
-        .def("graph_entropy_all", &GraphEntropy::graph_entropy_all);
+        .def("graph_entropy_all", &GraphEntropy::graph_entropy_all)
+        .def("match_mapping", &GraphEntropy::match_mapping);
 }

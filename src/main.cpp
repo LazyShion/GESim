@@ -1,6 +1,6 @@
 /*
  * Similarity Search on a Graph Database
- * Last update: November 10th, 2023
+ * Last update: August 30th, 2024
  * Author: Hiroaki Shiokawa
  */
 #include <stdlib.h>
@@ -109,12 +109,22 @@ main(int argc, char **argv){
   GraphEntropy g_entropy(&gdb, max_rad);
 
   // Test codes
-  cout << g_entropy.graph_entropy(0, 1) << endl;
-  
+  cout <<g_entropy.graph_entropy(1, 2) << endl;;
+  vector<vector<int>> match = g_entropy.match_mapping(1, 2);
+  for(unsigned int i=0, end=match[0].size(); i<end; ++i){
+    cout << i << "\t" << match[0][i] << endl;
+  }
+  cout << endl;
+  for(unsigned int i=0, end=match[1].size(); i<end; ++i){
+    cout << i << "\t" << match[1][i] << endl;
+  }
+
+  /*
   vector<double> sims = g_entropy.graph_entropy_all(0);
   for(unsigned int i=0; i<sims.size(); ++i){
     cout << sims[i] << endl;
   }
+  */
   // ***************************************************
   
   if(result){
