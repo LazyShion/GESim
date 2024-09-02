@@ -5,6 +5,7 @@ __version__ = "0.0.1"
 
 INSTALL_REQUIRES = [
     'rdkit~=2023.9.1',
+    'numpy~=1.26.3',
     'pybind11~=2.11.1'
 ]
 PACKAGES = [
