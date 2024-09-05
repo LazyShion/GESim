@@ -109,7 +109,6 @@ main(int argc, char **argv){
   GraphEntropy g_entropy(&gdb, max_rad);
 
   // Test codes
-  cout <<g_entropy.graph_entropy(1, 2) << endl;;
   vector<vector<int>> match = g_entropy.match_mapping(1, 2);
   for(unsigned int i=0, end=match[0].size(); i<end; ++i){
     cout << i << "\t" << match[0][i] << endl;
@@ -118,11 +117,12 @@ main(int argc, char **argv){
   for(unsigned int i=0, end=match[1].size(); i<end; ++i){
     cout << i << "\t" << match[1][i] << endl;
   }
+  cout << 1 - g_entropy.graph_entropy(1, 2) << endl;
 
   /*
   vector<double> sims = g_entropy.graph_entropy_all(0);
   for(unsigned int i=0; i<sims.size(); ++i){
-    cout << sims[i] << endl;
+    cout << i << " " << 1-sims[i] << endl;
   }
   */
   // ***************************************************
