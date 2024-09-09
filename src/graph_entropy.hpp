@@ -161,13 +161,9 @@ public:
   // Return match mapping between g1 and g2
   inline pair<vector<int>, vector<int>>
   align_match(unsigned int g1, unsigned int g2){
-    // Initialization
+    
     unsigned int num_nodes_g1 = gdb->num_nodes_gid(g1);
     unsigned int num_nodes_g2 = gdb->num_nodes_gid(g2);
-    if(num_nodes_g1 > num_nodes_g2){
-      swap(g1, g2);
-      swap(num_nodes_g1, num_nodes_g2);
-    }
 
     // Costs computation
     vector<double> costs(num_nodes_g1*num_nodes_g2, -1);
@@ -211,7 +207,18 @@ public:
   // compute QJS distance between graphs g1 and g2
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
+    // New implementation
     return align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
+
+    // Original implementation
+    /*
+    double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
+    if(diff<=0){
+      return 0;
+    }else{
+      return sqrt(diff);
+    }
+    */
   }
 
   // generate ecfp code for a node nid in a graph gid
@@ -312,7 +319,7 @@ public:
 	vector<double>::iterator it_costs){
 
     int T = r+1; // Maximum # of bits
-    int L = 3; // Minimum # of bits
+    int L = 2; // Minimum # of bits
     // Uncertainty = T - L
     
     for(; T>=L; T--){      
