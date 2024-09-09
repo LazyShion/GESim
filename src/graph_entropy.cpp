@@ -1,10 +1,10 @@
-//#include <pybind11/pybind11.h>
-//#include <pybind11/stl.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include "graph_entropy.hpp"
 
 using namespace std;
 
-//namespace py = pybind11;
+namespace py = pybind11;
 
 GraphEntropy::GraphEntropy(){}
 
@@ -81,7 +81,7 @@ GraphEntropy::graph_entropy_all(unsigned int gid1){
   
   return result;
 }
-/*
+
 PYBIND11_MODULE(graph_entropy, m) {
     py::class_<GraphEntropy>(m, "GraphEntropy")
         .def(py::init<>())
@@ -92,4 +92,4 @@ PYBIND11_MODULE(graph_entropy, m) {
         .def("graph_entropy_all", &GraphEntropy::graph_entropy_all)
         .def("match_mapping", &GraphEntropy::match_mapping);
 }
-*/
+
