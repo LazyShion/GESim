@@ -32,7 +32,7 @@ private:
   const static unsigned int FP_LEN = 1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
   unsigned int r; // max_rad
-
+  const bool OLD_QJS = false; // for test
   
 public:
   // ---------------------
@@ -119,11 +119,20 @@ public:
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       int pos = align_g1[i];
 
-      if(pos != -1){
-	degrees_g1[i] = 0.5*gdb->degree_gid(g1, i) + 0.5*gdb->degree_gid(g2, pos);
+      if(!OLD_QJS){
+	if(pos != -1){
+	  degrees_g1[i] = 0.5*gdb->degree_gid(g1, i) + 0.5*gdb->degree_gid(g2, pos);
+	}else{
+	  degrees_g1[i] = gdb->degree_gid(g1, i);
+	}
       }else{
-	degrees_g1[i] = gdb->degree_gid(g1, i);
+	if(pos != -1 && costs[num_nodes_g2*i + pos] == 1){
+	  degrees_g1[i] = gdb->merged_degree(g1, i, g2, pos);
+	}else{
+	  degrees_g1[i] = gdb->degree_gid(g1, i);
+	}
       }
+      
       total_deg += degrees_g1[i];
     }
 
@@ -207,18 +216,18 @@ public:
   // compute QJS distance between graphs g1 and g2
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
-    // New implementation
-    return align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-
-    // Original implementation
-    /*
-    double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-    if(diff<=0){
-      return 0;
+    if(!OLD_QJS){
+      // New implementation
+      return align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
     }else{
-      return sqrt(diff);
+      // Original implementation
+      double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
+      if(diff<=0){
+	return 0;
+      }else{
+	return sqrt(diff);
+      }
     }
-    */
   }
 
   // generate ecfp code for a node nid in a graph gid
