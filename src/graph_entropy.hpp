@@ -32,7 +32,7 @@ private:
   const static unsigned int FP_LEN = 1024; // length of a finger print
   vector<bitset<FP_LEN>> ecfp; // finger print vector
   unsigned int r; // max_rad
-
+  const bool OLD_QJS = false; // for test
   
 public:
   // ---------------------
@@ -119,33 +119,36 @@ public:
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       int pos = align_g1[i];
 
-      if(pos != -1 && costs[num_nodes_g2*i + pos] == 1){
-	degrees_g1[i] = gdb->merged_degree(g1, i, g2, pos);
+      if(!OLD_QJS){
+	if(pos != -1){
+	  degrees_g1[i] = 0.5*gdb->degree_gid(g1, i) + 0.5*gdb->degree_gid(g2, pos);
+	}else{
+	  degrees_g1[i] = gdb->degree_gid(g1, i);
+	}
       }else{
-	degrees_g1[i] = gdb->degree_gid(g1, i);
+	if(pos != -1 && costs[num_nodes_g2*i + pos] == 1){
+	  degrees_g1[i] = gdb->merged_degree(g1, i, g2, pos);
+	}else{
+	  degrees_g1[i] = gdb->degree_gid(g1, i);
+	}
       }
+      
       total_deg += degrees_g1[i];
     }
-    
+
     for(unsigned int j=0; j<num_nodes_g2; ++j){
       int pos = align_g2[j];
       if(pos == -1){
 	degrees_g2[j] = gdb->degree_gid(g2, j);
 	total_deg += degrees_g2[j];
-      }      
+      }
     }
-    
+
     // Compute graph entropy (structural information)
     double gent = 0.0;
     for(unsigned int i=0; i<num_nodes_g1; ++i){
       unsigned int deg = degrees_g1[i];
-      int pos = align_g1[i];
-      double cost = r;
 
-      if(pos != -1){
-	cost = cost - costs[num_nodes_g2*i+pos];
-      }
-      
       if(deg > 0){	
 	double x = (double)deg/total_deg;
 	gent += x * log(x);
@@ -154,32 +157,22 @@ public:
     
     for(unsigned int j=0; j<num_nodes_g2; ++j){
       unsigned int deg = degrees_g2[j];
-      int pos = align_g2[j];
-      double cost = r;
 
-      if(pos != -1){
-	cost = cost - costs[num_nodes_g2*pos+j];
-      }
-      
       if(deg > 0){
 	double x = (double)deg/total_deg;
 	gent += x * log(x);
       }
     }
-
+    
     return -gent;
   }
   
   // Return match mapping between g1 and g2
   inline pair<vector<int>, vector<int>>
   align_match(unsigned int g1, unsigned int g2){
-    // Initialization
+    
     unsigned int num_nodes_g1 = gdb->num_nodes_gid(g1);
     unsigned int num_nodes_g2 = gdb->num_nodes_gid(g2);
-    if(num_nodes_g1 > num_nodes_g2){
-      swap(g1, g2);
-      swap(num_nodes_g1, num_nodes_g2);
-    }
 
     // Costs computation
     vector<double> costs(num_nodes_g1*num_nodes_g2, -1);
@@ -203,18 +196,37 @@ public:
     vector<int> align_g2(num_nodes_g2, -1);
     GRAAL(g1, g2, align_g1.begin(), align_g1.size(), align_g2.begin(), align_g2.size(), costs.begin());
 
+    // Reformat align_g1
+    for(int i=0, end=align_g1.size(); i<end; ++i){
+      if(align_g1[i]!=-1){
+	align_g1[i] = 1;
+      }
+    }
+
+    // Reformat align_g2
+    for(unsigned int i=0, end=align_g2.size(); i<end; ++i){
+      if(align_g2[i]!=-1){
+	align_g2[i] = 1;
+      }
+    }
+    
     return make_pair(align_g1, align_g2);
   }
 
   // compute QJS distance between graphs g1 and g2
   inline double
   comp_QJS(unsigned int g1, unsigned int g2){
-    double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
-    
-    if(diff<=0){
-      return 0;
+    if(!OLD_QJS){
+      // New implementation
+      return align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
     }else{
-      return sqrt(diff);
+      // Original implementation
+      double diff = align_graphs(g1, g2) - (comp_SI(g1)+comp_SI(g2))/2;
+      if(diff<=0){
+	return 0;
+      }else{
+	return sqrt(diff);
+      }
     }
   }
 
@@ -285,7 +297,11 @@ public:
 	    if(rad>1){
 	      queue.push_back(make_pair(rad-1, make_pair(neigh, make_pair((int)node, path+sub_path))));
 	    }else{
-	      PATHS.push_back(path+sub_path);
+	      if(rad==0){
+		PATHS.push_back(path);
+	      }else{
+		PATHS.push_back(path+sub_path);
+	      }
 	    }
 	  }
 	}
@@ -304,15 +320,18 @@ public:
     return code;
   }
 
-  // Run GRAAL old between g1 and g2
+  // Run GRAAL between g1 and g2
   inline void
   GRAAL(unsigned int g1, unsigned int g2,
 	vector<int>::iterator it_g1, unsigned int size_g1,
 	vector<int>::iterator it_g2, unsigned int size_g2,
 	vector<double>::iterator it_costs){
 
-    for(unsigned int val=r; val>0; --val){
-      
+    int T = r+1; // Maximum # of bits
+    int L = 2; // Minimum # of bits
+    // Uncertainty = T - L
+    
+    for(; T>=L; T--){      
       for(unsigned int i=0; i<size_g1; ++i){
 	if(*(it_g1+i)!=-1){
 	  continue;
@@ -321,15 +340,17 @@ public:
 	for(unsigned int j=0; j<size_g2; ++j){
 	  unsigned int index = size_g2*i+j;
 	  if(*(it_g2+j) == -1){
-	    if(*(it_costs+index) > r-1){
-	      *(it_g1 + i) = 1;//j;
-	      *(it_g2 + j) = 1;//i;
+	    if(*(it_costs+index) >= T){
+	      *(it_g1 + i) = j;
+	      *(it_g2 + j) = i;
 	      break;
 	    }
 	  }
 	}
+	
       }      
-    }    
+    }
+    
   }  
   
   
