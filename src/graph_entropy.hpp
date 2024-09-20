@@ -328,7 +328,7 @@ public:
 	vector<double>::iterator it_costs){
 
     int T = r+1; // Maximum # of bits
-    int L = 2; // Minimum # of bits
+    int L = 4; // Minimum # of bits
     // Uncertainty = T - L
     
     for(; T>=L; T--){      

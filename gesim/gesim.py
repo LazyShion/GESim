@@ -4,6 +4,7 @@ import tempfile
 
 import numpy as np
 from rdkit import Chem
+from rdkit.Chem.AtomPairs.Utils import GetAtomCode
 
 from gesim import convert, gdb, graph_entropy
 
@@ -166,7 +167,8 @@ def get_graph_from_mol(
     crs_graph = ""
     crs_graph += "t {index}\n"  # placeholder
     for a in mol.GetAtoms():
-        crs_graph += f"v {a.GetIdx()} {a.GetSymbol()}\n"
+        #crs_graph += f"v {a.GetIdx()} {a.GetSymbol()}\n"
+        crs_graph += f"v {a.GetIdx()} {GetAtomCode(a)}\n"
     for b in mol.GetBonds():
         crs_graph += f"e {b.GetIdx()} {b.GetBeginAtomIdx()} {b.GetEndAtomIdx()} {b.GetBondTypeAsDouble()}\n"
     return crs_graph
