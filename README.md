@@ -31,12 +31,14 @@ pip install --upgrade .
 from rdkit import Chem
 from gesim import gesim
 
-mol1 = Chem.MolFromSmiles('CCO')
-mol2 = Chem.MolFromSmiles('CCN')
-mols = [mol1, mol2, Chem.MolFromSmiles('CCC')]
+mol1 = Chem.MolFromSmiles('Cc1nn(C2CCN(Cc3cccc(C#N)c3)CC2)cc1-c1ccccc1')
+mol2 = Chem.MolFromSmiles('Cc1nn(C2CCN(Cc3cccc(Cl)c3)CC2)cc1-c1ccccc1')
+mols = [mol1, mol2, Chem.MolFromSmiles('c1ccc(CN2CCC(n3nccc3-c3ccccc3)CC2)cc1')]
 
-gesim.graph_entropy_similarity(mol1, mol2)
-gesim.graph_entropy_similarity_batch(mol1, mols)
+print(gesim.graph_entropy_similarity(mol1, mol2, r=4))
+# 0.9580227325517037
+print(gesim.graph_entropy_similarity_batch(mol1, mols, r=4))
+# [1.0, 0.9580227325517037, 0.7766178810633495]
 ```
 
 ## Contact
