@@ -48,4 +48,4 @@ print(gesim.graph_entropy_similarity_batch(mol1, mols, r=4))
 
 ## License
 
-This package is distributed under the ###.
+This package is distributed under the MIT license.
