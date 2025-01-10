@@ -4,6 +4,7 @@
 
 ### Requirements
 
+- Python: >= 3.11
 - gcc: 11.3.1 (or later)
 - rdkit: 2023.9.1
 - pybind11: 2.11.1
