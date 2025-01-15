@@ -52,6 +52,20 @@ Draw.MolsToGridImage([mol1, mol2], highlightAtomLists=[mol1_hal, mol2_hal], mols
 <img src='./fig/visualization_example.svg'>
 
 
+## How to cite
+
+```
+@article{Shiokawa2025,
+  title = {GESim: Ultrafast Graph-Based Molecular Similarity Calculation via von Neumann Graph Entropy},
+  url = {http://dx.doi.org/10.26434/chemrxiv-2025-gm6vk},
+  DOI = {10.26434/chemrxiv-2025-gm6vk},
+  publisher = {American Chemical Society (ACS)},
+  author = {Shiokawa,  Hiroaki and Ishida,  Shoichi and Terayama,  Kei},
+  year = {2025},
+  month = jan 
+}
+```
+
 ## Contact
 
 - Hiroaki Shiokawa
